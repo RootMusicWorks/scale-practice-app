@@ -12,114 +12,122 @@ const settings = {
 
 // メトロノームの状態
 let currentBPM = 90;
-let nextTickTime = 0; // 次のクリック音の時間
+let nextTickTime = 0; 
+let metronomeRunning = false;  // メトロノームが動作中かどうか
+let metronomeRequestId;        // requestAnimationFrameのID管理用
 
 // 音源を準備
-let clickAudio = new Audio('click.mp3'); // `click.mp3` のパスを確認
-clickAudio.load(); // 音源を事前にロード
+let clickAudio = new Audio('click.mp3');
+clickAudio.load(); 
 
 // メトロノームの再生を開始
 function playClickSound() {
-  clickAudio.currentTime = 0; // 音源の先頭に戻す
-  clickAudio.play().catch(e => {
-    console.error("Error playing audio:", e); // 音の再生に失敗した場合のエラーハンドリング
-  });
+    clickAudio.currentTime = 0;
+    clickAudio.play().catch(e => {
+        console.error("Error playing audio:", e);
+    });
 }
 
 function startMetronome() {
-  nextTickTime = Date.now(); // 最初のtickの時刻
-  tick(); // メトロノームの最初のtick
+    if (!metronomeRunning) {
+        metronomeRunning = true;
+        nextTickTime = Date.now();
+        tick();
+    }
 }
 
 function tick() {
-  let currentTime = Date.now();
-  if (currentTime >= nextTickTime) {
-    playClickSound();
-    nextTickTime = currentTime + (60000 / currentBPM);  // 次のクリック音のタイミングを設定
-  }
-
-  // ループして次のtickをスケジュール
-  requestAnimationFrame(tick);
+    if (!metronomeRunning) return;
+    
+    let currentTime = Date.now();
+    if (currentTime >= nextTickTime) {
+        playClickSound();
+        nextTickTime = currentTime + (60000 / currentBPM);
+    }
+    metronomeRequestId = requestAnimationFrame(tick);
 }
 
 function stopMetronome() {
-  cancelAnimationFrame(nextTickTime);
+    metronomeRunning = false;
+    if (metronomeRequestId) {
+        cancelAnimationFrame(metronomeRequestId);
+    }
 }
 
 function updateBPM(value) {
-  currentBPM = Math.max(40, Math.min(240, currentBPM + value));
-  document.getElementById('bpm-input').value = currentBPM;
-  if (nextTickTime) {
-    nextTickTime = Date.now();
-    tick();
-  }
+    currentBPM = Math.max(40, Math.min(240, currentBPM + value));
+    document.getElementById('bpm-input').value = currentBPM;
+    if (metronomeRunning) {
+        nextTickTime = Date.now();
+        tick();
+    }
 }
 
 /* ====================================
   初期化: 各チェックボックスの選択値を読み込む
 ==================================== */
 function initializeSettings() {
-  const scalesNonPenta = getCheckedValues('#scales-nonpenta input:checked');
-  const scalesPenta = getCheckedValues('#scales-penta input:checked');
-  settings.scales = scalesNonPenta.concat(scalesPenta);
-  settings.keys = getCheckedValues('#keys-suboptions input:checked');
-  settings.positionsNonPenta = getCheckedValues('#positions-nonpenta input:checked');
-  settings.positionsPenta = getCheckedValues('#positions-penta input:checked');
-  settings.phrasesNonPenta = getCheckedValues('#phrases-nonpenta input:checked');
-  settings.phrasesPenta = getCheckedValues('#phrases-penta input:checked');
-  settings.lenpu = getCheckedValues('#lenpu-suboptions input:checked');
-  
-  const minVal = Number(document.getElementById('bpm-min').value);
-  const maxVal = Number(document.getElementById('bpm-max').value);
-  settings.bpmRange.min = Math.max(40, minVal);
-  settings.bpmRange.max = Math.min(240, maxVal);
+    const scalesNonPenta = getCheckedValues('#scales-nonpenta input:checked');
+    const scalesPenta = getCheckedValues('#scales-penta input:checked');
+    settings.scales = scalesNonPenta.concat(scalesPenta);
+    settings.keys = getCheckedValues('#keys-suboptions input:checked');
+    settings.positionsNonPenta = getCheckedValues('#positions-nonpenta input:checked');
+    settings.positionsPenta = getCheckedValues('#positions-penta input:checked');
+    settings.phrasesNonPenta = getCheckedValues('#phrases-nonpenta input:checked');
+    settings.phrasesPenta = getCheckedValues('#phrases-penta input:checked');
+    settings.lenpu = getCheckedValues('#lenpu-suboptions input:checked');
+    
+    const minVal = Number(document.getElementById('bpm-min').value);
+    const maxVal = Number(document.getElementById('bpm-max').value);
+    settings.bpmRange.min = Math.max(40, minVal);
+    settings.bpmRange.max = Math.min(240, maxVal);
 }
 
 /* ====================================
   チェックが入っている値を取得
 ==================================== */
 function getCheckedValues(selector) {
-  return Array.from(document.querySelectorAll(selector)).map(el => el.value);
+    return Array.from(document.querySelectorAll(selector)).map(el => el.value);
 }
 
 /* ====================================
   ランダム関数
 ==================================== */
 function getRandomItem(array) {
-  return array[Math.floor(Math.random() * array.length)];
+    return array[Math.floor(Math.random() * array.length)];
 }
 
 function getRandomBPM(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 /* ====================================
   お題生成
 ==================================== */
 function generateTask() {
-  initializeSettings();
-  
-  if (!settings.scales.length || !settings.keys.length) {
-    alert('スケールとキーのチェックを最低1つずつは入れてください。');
-    return;
-  }
-  
-  const selectedScale = getRandomItem(settings.scales);
-  const selectedKey = getRandomItem(settings.keys);
-  const selectedPosition = getRandomItem(settings.positionsNonPenta);
-  const selectedPhrase = getRandomItem(settings.phrasesNonPenta);
-  const selectedLenpu = getRandomItem(settings.lenpu);
-  const randomBPM = getRandomBPM(settings.bpmRange.min, settings.bpmRange.max);
+    initializeSettings();
+    
+    if (!settings.scales.length || !settings.keys.length) {
+        alert('スケールとキーのチェックを最低1つずつは入れてください。');
+        return;
+    }
+    
+    const selectedScale = getRandomItem(settings.scales);
+    const selectedKey = getRandomItem(settings.keys);
+    const selectedPosition = getRandomItem(settings.positionsNonPenta);
+    const selectedPhrase = getRandomItem(settings.phrasesNonPenta);
+    const selectedLenpu = getRandomItem(settings.lenpu);
+    const randomBPM = getRandomBPM(settings.bpmRange.min, settings.bpmRange.max);
 
-  document.getElementById('scale-display').textContent = `スケール: ${selectedScale}`;
-  document.getElementById('key-display').textContent = `キー: ${selectedKey}`;
-  document.getElementById('position-display').textContent = `スタートポジション: ${selectedPosition}`;
-  document.getElementById('phrase-display').textContent = `フレーズ: ${selectedPhrase}`;
-  document.getElementById('lenpu-display').textContent = `連符: ${selectedLenpu}`;
-  document.getElementById('bpm-display').textContent = `BPM: ${randomBPM}`;
-  
-  updateBPM(randomBPM - currentBPM);
-  startMetronome();
+    document.getElementById('scale-display').textContent = `スケール: ${selectedScale}`;
+    document.getElementById('key-display').textContent = `キー: ${selectedKey}`;
+    document.getElementById('position-display').textContent = `スタートポジション: ${selectedPosition}`;
+    document.getElementById('phrase-display').textContent = `フレーズ: ${selectedPhrase}`;
+    document.getElementById('lenpu-display').textContent = `連符: ${selectedLenpu}`;
+    document.getElementById('bpm-display').textContent = `BPM: ${randomBPM}`;
+    
+    updateBPM(randomBPM - currentBPM);
+    startMetronome();
 }
 
 /* ====================================
@@ -140,10 +148,10 @@ document.getElementById('increase5-bpm').addEventListener('click', () => updateB
 
 // BPM 手入力
 document.getElementById('bpm-input').addEventListener('change', (event) => {
-  const newValue = Number(event.target.value);
-  currentBPM = Math.max(40, Math.min(240, newValue));
-  if (nextTickTime) {
-    nextTickTime = Date.now();
-    tick();
-  }
+    const newValue = Number(event.target.value);
+    currentBPM = Math.max(40, Math.min(240, newValue));
+    if (metronomeRunning) {
+        nextTickTime = Date.now();
+        tick();
+    }
 });
