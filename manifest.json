@@ -2,7 +2,7 @@
   "name": "スケール練習アプリ",
   "short_name": "スケールアプリ",
   "description": "ギターのスケール練習アプリ",
-  "start_url": "/index.html",
+"start_url": "https://rootmusicworks.github.io/scale-practice-app/index.html"
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#007bff",
