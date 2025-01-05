@@ -27,6 +27,8 @@ clickAudio.addEventListener('canplaythrough', () => {
   request.onload = () => {
     audioContext.decodeAudioData(request.response, (buffer) => {
       clickBuffer = buffer; // 読み込んだ音源をバッファにセット
+    }, (e) => {
+      console.error("Error decoding audio data", e);
     });
   };
   request.send();
