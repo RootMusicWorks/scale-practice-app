@@ -13,7 +13,10 @@ const settings = {
 // メトロノームの状態
 let currentBPM = 90;
 let nextTickTime = 0; // 次のクリック音の時間
-let clickAudio = new Audio('click.mp3'); // 音源のロード
+
+// 音源を準備
+let clickAudio = new Audio('click.mp3'); // `click.mp3` のパスを確認
+clickAudio.load(); // 音源を事前にロード
 
 // メトロノームの再生を開始
 function playClickSound() {
