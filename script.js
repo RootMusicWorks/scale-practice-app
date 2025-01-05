@@ -6,6 +6,18 @@ let metronomeRunning = false;
 const scheduleAheadTime = 0.1;  // 100ms先読みバッファ
 const lookahead = 25;           // 25msごとにチェック
 
+// 設定オブジェクト
+const settings = {
+    scales: [],
+    keys: [],
+    positionsNonPenta: [],
+    positionsPenta: [],
+    phrasesNonPenta: [],
+    phrasesPenta: [],
+    lenpu: [],
+    bpmRange: { min: 90, max: 120 }
+};
+
 // 音源ファイルの読み込み
 let clickBuffer;
 fetch('click.mp3')
@@ -61,11 +73,18 @@ function updateBPM(value) {
     }
 }
 
+// お題生成関数
+function generateTask() {
+    alert('お題が生成されました！');
+    startMetronome();
+}
+
 // イベントリスナー設定
 addEventListenersWithTouchSupport('start-metronome', startMetronome);
 addEventListenersWithTouchSupport('stop-metronome', stopMetronome);
 addEventListenersWithTouchSupport('increase-bpm', () => updateBPM(currentBPM + 1));
 addEventListenersWithTouchSupport('decrease-bpm', () => updateBPM(currentBPM - 1));
+addEventListenersWithTouchSupport('generate-task', generateTask);
 
 document.getElementById('bpm-input').addEventListener('change', (event) => {
     updateBPM(Number(event.target.value));
