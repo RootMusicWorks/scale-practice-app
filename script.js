@@ -10,38 +10,29 @@ const settings = {
   bpmRange: { min: 90, max: 120 },  // デフォルト 90～120
 };
 
-// メトロノーム関連
-let metronomeInterval;
-let currentBPM = 90;
-let nextTickTime = 0;
-
-// MP3 音源を読み込む
+// Web Audio APIのセットアップ
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 const clickAudio = new Audio('click.mp3');
+const clickBuffer = audioContext.createBufferSource();
+
+// メトロノームの状態
+let currentBPM = 90;
+let nextTickTime = 0; // 次のクリック音の時間
 
 /* ====================================
   初期化: 各チェックボックスの選択値を読み込む
 ==================================== */
 function initializeSettings() {
-  // スケール（ペンタ以外 + ペンタ）
   const scalesNonPenta = getCheckedValues('#scales-nonpenta input:checked');
   const scalesPenta = getCheckedValues('#scales-penta input:checked');
   settings.scales = scalesNonPenta.concat(scalesPenta);
-
-  // キー
   settings.keys = getCheckedValues('#keys-suboptions input:checked');
-
-  // スタートポジション
   settings.positionsNonPenta = getCheckedValues('#positions-nonpenta input:checked');
   settings.positionsPenta = getCheckedValues('#positions-penta input:checked');
-
-  // フレーズ
   settings.phrasesNonPenta = getCheckedValues('#phrases-nonpenta input:checked');
   settings.phrasesPenta = getCheckedValues('#phrases-penta input:checked');
-
-  // 連符
   settings.lenpu = getCheckedValues('#lenpu-suboptions input:checked');
-
-  // BPM範囲
+  
   const minVal = Number(document.getElementById('bpm-min').value);
   const maxVal = Number(document.getElementById('bpm-max').value);
   settings.bpmRange.min = Math.max(40, minVal);
@@ -61,73 +52,36 @@ function getCheckedValues(selector) {
 function getRandomItem(array) {
   return array[Math.floor(Math.random() * array.length)];
 }
+
 function getRandomBPM(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 /* ====================================
   お題生成
-  順: スケール → キー → スタートポジション → フレーズ → 連符 → BPM
 ==================================== */
 function generateTask() {
   initializeSettings();
-
-  // スケール / キー / スタートポジション / フレーズ / 連符 が足りているかチェック
+  
   if (!settings.scales.length || !settings.keys.length) {
     alert('スケールとキーのチェックを最低1つずつは入れてください。');
     return;
   }
-  if (
-    (!settings.positionsNonPenta.length && !settings.positionsPenta.length) ||
-    (!settings.phrasesNonPenta.length && !settings.phrasesPenta.length) ||
-    (!settings.lenpu.length)
-  ) {
-    alert('スタートポジションやフレーズがすべて未選択です。');
-    return;
-  }
-
-  // スケール決定
+  
   const selectedScale = getRandomItem(settings.scales);
-  // 「ペンタ」を含むかどうか
-  const isPenta = selectedScale.includes('ペンタ');
-
-  // キー決定
   const selectedKey = getRandomItem(settings.keys);
-
-  // スタートポジション / フレーズ
-  let selectedPosition;
-  let selectedPhrase;
-  if (isPenta) {
-    if (!settings.positionsPenta.length || !settings.phrasesPenta.length) {
-      alert('ペンタ系のスタートポジションまたはフレーズが選択されていません。');
-      return;
-    }
-    selectedPosition = getRandomItem(settings.positionsPenta);
-    selectedPhrase = getRandomItem(settings.phrasesPenta);
-  } else {
-    if (!settings.positionsNonPenta.length || !settings.phrasesNonPenta.length) {
-      alert('ペンタ以外のスタートポジションまたはフレーズが選択されていません。');
-      return;
-    }
-    selectedPosition = getRandomItem(settings.positionsNonPenta);
-    selectedPhrase = getRandomItem(settings.phrasesNonPenta);
-  }
-
-  // 4) 連符
+  const selectedPosition = getRandomItem(settings.positionsNonPenta);
+  const selectedPhrase = getRandomItem(settings.phrasesNonPenta);
   const selectedLenpu = getRandomItem(settings.lenpu);
-
-  // BPM
   const randomBPM = getRandomBPM(settings.bpmRange.min, settings.bpmRange.max);
 
-  // お題表示
   document.getElementById('scale-display').textContent = `スケール: ${selectedScale}`;
   document.getElementById('key-display').textContent = `キー: ${selectedKey}`;
   document.getElementById('position-display').textContent = `スタートポジション: ${selectedPosition}`;
   document.getElementById('phrase-display').textContent = `フレーズ: ${selectedPhrase}`;
   document.getElementById('lenpu-display').textContent = `連符: ${selectedLenpu}`;
   document.getElementById('bpm-display').textContent = `BPM: ${randomBPM}`;
-
-  // メトロノームに反映 & 自動スタート
+  
   updateBPM(randomBPM - currentBPM);
   startMetronome();
 }
@@ -136,28 +90,33 @@ function generateTask() {
   メトロノーム関連
 ==================================== */
 function playClickSound() {
-  // 音源を先頭に戻し、再生
-  clickAudio.currentTime = 0;
-  clickAudio.play().catch(e => {
-    console.log("Audio play error:", e);  // 音が再生できない場合のエラーハンドリング
+  // Web Audio APIを使って音を再生
+  const audio = new Audio('click.mp3');
+  audioContext.decodeAudioData(audio.buffer, (buffer) => {
+    clickBuffer.buffer = buffer;
+    clickBuffer.connect(audioContext.destination);
+    clickBuffer.start(0);
   });
 }
 
 function startMetronome() {
-  nextTickTime = performance.now();  // 最初のtick時間を設定
-  requestAnimationFrame(tick);  // メトロノームを開始
+  nextTickTime = audioContext.currentTime; // 最初のtickの時刻
+  tick(); // メトロノームの最初のtick
 }
 
-function tick(currentTime) {
-  if (currentTime >= nextTickTime) {
+function tick() {
+  if (audioContext.currentTime >= nextTickTime) {
     playClickSound();
-    nextTickTime = currentTime + (60000 / currentBPM);  // 次のクリック音の時間を計算
+    nextTickTime = audioContext.currentTime + (60 / currentBPM);  // 次のクリック音のタイミングを設定
   }
-  requestAnimationFrame(tick);  // 継続的にtickを呼び出す
+  
+  // ループして次のtickをスケジュール
+  requestAnimationFrame(tick);
 }
 
 function stopMetronome() {
-  cancelAnimationFrame(nextTickTime);  // メトロノームを停止
+  // メトロノームを停止
+  cancelAnimationFrame(nextTickTime);
 }
 
 function updateBPM(value) {
@@ -165,8 +124,8 @@ function updateBPM(value) {
   document.getElementById('bpm-input').value = currentBPM;
   // メトロノームが動いていれば BPM 変更を即反映
   if (nextTickTime) {
-    nextTickTime = performance.now();
-    requestAnimationFrame(tick);
+    nextTickTime = audioContext.currentTime;
+    tick();
   }
 }
 
@@ -191,7 +150,7 @@ document.getElementById('bpm-input').addEventListener('change', (event) => {
   const newValue = Number(event.target.value);
   currentBPM = Math.max(40, Math.min(240, newValue));
   if (nextTickTime) {
-    nextTickTime = performance.now();
-    requestAnimationFrame(tick);
+    nextTickTime = audioContext.currentTime;
+    tick();
   }
 });
