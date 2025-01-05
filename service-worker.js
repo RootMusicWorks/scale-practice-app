@@ -1,14 +1,15 @@
-const CACHE_NAME = 'scale-app-cache-v3';  // キャッシュ名変更で強制更新
+const CACHE_NAME = 'scale-app-cache-v3';  // キャッシュ名が統一されている
 const urlsToCache = [
     './index.html',
     './style.css',
     './script.js',
     './click.mp3',
     './icon-192x192.png',
-    './icon-512x512.png'
+    './icon-512x512.png',
+    './manifest.json'  // ここもキャッシュ対象に追加
 ];
 
-// インストール時にキャッシュを保存
+// インストール時にキャッシュ保存
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
@@ -23,7 +24,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
-          if (cache !== 'scale-app-cache') {
+          if (cache !== CACHE_NAME) {
             return caches.delete(cache);
           }
         })
@@ -32,7 +33,7 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// フェッチ時にキャッシュから取得（オフライン対応）
+// フェッチ時にキャッシュから取得
 self.addEventListener('fetch', (event) => {
     event.respondWith(
         caches.match(event.request).then((cachedResponse) => {
