@@ -12,12 +12,25 @@ const settings = {
 
 // Web Audio APIのセットアップ
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-const clickAudio = new Audio('click.mp3');
-const clickBuffer = audioContext.createBufferSource();
+let clickBuffer = null;  // 音源を格納するバッファ
 
 // メトロノームの状態
 let currentBPM = 90;
 let nextTickTime = 0; // 次のクリック音の時間
+
+// MP3 音源を読み込む
+const clickAudio = new Audio('click.mp3');
+clickAudio.addEventListener('canplaythrough', () => {
+  const request = new XMLHttpRequest();
+  request.open('GET', 'click.mp3', true);
+  request.responseType = 'arraybuffer';
+  request.onload = () => {
+    audioContext.decodeAudioData(request.response, (buffer) => {
+      clickBuffer = buffer; // 読み込んだ音源をバッファにセット
+    });
+  };
+  request.send();
+});
 
 /* ====================================
   初期化: 各チェックボックスの選択値を読み込む
@@ -90,13 +103,14 @@ function generateTask() {
   メトロノーム関連
 ==================================== */
 function playClickSound() {
-  // Web Audio APIを使って音を再生
-  const audio = new Audio('click.mp3');
-  audioContext.decodeAudioData(audio.buffer, (buffer) => {
-    clickBuffer.buffer = buffer;
-    clickBuffer.connect(audioContext.destination);
-    clickBuffer.start(0);
-  });
+  if (clickBuffer) {
+    const clickSource = audioContext.createBufferSource();
+    clickSource.buffer = clickBuffer;
+    clickSource.connect(audioContext.destination);
+    clickSource.start(0);
+  } else {
+    console.error("Audio buffer is not loaded yet.");
+  }
 }
 
 function startMetronome() {
