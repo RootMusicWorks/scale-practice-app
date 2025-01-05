@@ -10,29 +10,47 @@ const settings = {
   bpmRange: { min: 90, max: 120 },  // デフォルト 90～120
 };
 
-// Web Audio APIのセットアップ
-const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-let clickBuffer = null;  // 音源を格納するバッファ
-
 // メトロノームの状態
 let currentBPM = 90;
 let nextTickTime = 0; // 次のクリック音の時間
+let clickAudio = new Audio('click.mp3'); // 音源のロード
 
-// MP3 音源を読み込む
-const clickAudio = new Audio('click.mp3');
-clickAudio.addEventListener('canplaythrough', () => {
-  const request = new XMLHttpRequest();
-  request.open('GET', 'click.mp3', true);
-  request.responseType = 'arraybuffer';
-  request.onload = () => {
-    audioContext.decodeAudioData(request.response, (buffer) => {
-      clickBuffer = buffer; // 読み込んだ音源をバッファにセット
-    }, (e) => {
-      console.error("Error decoding audio data", e);
-    });
-  };
-  request.send();
-});
+// メトロノームの再生を開始
+function playClickSound() {
+  clickAudio.currentTime = 0; // 音源の先頭に戻す
+  clickAudio.play().catch(e => {
+    console.error("Error playing audio:", e); // 音の再生に失敗した場合のエラーハンドリング
+  });
+}
+
+function startMetronome() {
+  nextTickTime = Date.now(); // 最初のtickの時刻
+  tick(); // メトロノームの最初のtick
+}
+
+function tick() {
+  let currentTime = Date.now();
+  if (currentTime >= nextTickTime) {
+    playClickSound();
+    nextTickTime = currentTime + (60000 / currentBPM);  // 次のクリック音のタイミングを設定
+  }
+
+  // ループして次のtickをスケジュール
+  requestAnimationFrame(tick);
+}
+
+function stopMetronome() {
+  cancelAnimationFrame(nextTickTime);
+}
+
+function updateBPM(value) {
+  currentBPM = Math.max(40, Math.min(240, currentBPM + value));
+  document.getElementById('bpm-input').value = currentBPM;
+  if (nextTickTime) {
+    nextTickTime = Date.now();
+    tick();
+  }
+}
 
 /* ====================================
   初期化: 各チェックボックスの選択値を読み込む
@@ -102,50 +120,6 @@ function generateTask() {
 }
 
 /* ====================================
-  メトロノーム関連
-==================================== */
-function playClickSound() {
-  if (clickBuffer) {
-    const clickSource = audioContext.createBufferSource();
-    clickSource.buffer = clickBuffer;
-    clickSource.connect(audioContext.destination);
-    clickSource.start(0);
-  } else {
-    console.error("Audio buffer is not loaded yet.");
-  }
-}
-
-function startMetronome() {
-  nextTickTime = audioContext.currentTime; // 最初のtickの時刻
-  tick(); // メトロノームの最初のtick
-}
-
-function tick() {
-  if (audioContext.currentTime >= nextTickTime) {
-    playClickSound();
-    nextTickTime = audioContext.currentTime + (60 / currentBPM);  // 次のクリック音のタイミングを設定
-  }
-  
-  // ループして次のtickをスケジュール
-  requestAnimationFrame(tick);
-}
-
-function stopMetronome() {
-  // メトロノームを停止
-  cancelAnimationFrame(nextTickTime);
-}
-
-function updateBPM(value) {
-  currentBPM = Math.max(40, Math.min(240, currentBPM + value));
-  document.getElementById('bpm-input').value = currentBPM;
-  // メトロノームが動いていれば BPM 変更を即反映
-  if (nextTickTime) {
-    nextTickTime = audioContext.currentTime;
-    tick();
-  }
-}
-
-/* ====================================
   イベントリスナー
 ==================================== */
 document.getElementById('generate-task').addEventListener('click', generateTask);
@@ -166,7 +140,7 @@ document.getElementById('bpm-input').addEventListener('change', (event) => {
   const newValue = Number(event.target.value);
   currentBPM = Math.max(40, Math.min(240, newValue));
   if (nextTickTime) {
-    nextTickTime = audioContext.currentTime;
+    nextTickTime = Date.now();
     tick();
   }
 });
