@@ -6,6 +6,7 @@ const settings = {
   positionsPenta: [],
   phrasesNonPenta: [],
   phrasesPenta: [],
+  lenpu: [],          // 連符
   bpmRange: { min: 90, max: 120 },  // デフォルト 90～120
 };
 
@@ -36,6 +37,9 @@ function initializeSettings() {
   settings.phrasesNonPenta = getCheckedValues('#phrases-nonpenta input:checked');
   settings.phrasesPenta = getCheckedValues('#phrases-penta input:checked');
 
+  // 連符
+  settings.lenpu = getCheckedValues('#lenpu-suboptions input:checked');
+
   // BPM範囲
   const minVal = Number(document.getElementById('bpm-min').value);
   const maxVal = Number(document.getElementById('bpm-max').value);
@@ -62,18 +66,20 @@ function getRandomBPM(min, max) {
 
 /* ====================================
   お題生成
+  順: スケール → キー → スタートポジション → フレーズ → 連符 → BPM
 ==================================== */
 function generateTask() {
   initializeSettings();
 
-  // スケール / キー / スタートポジション / フレーズ が足りているかチェック
+  // スケール / キー / スタートポジション / フレーズ / 連符 が足りているかチェック
   if (!settings.scales.length || !settings.keys.length) {
     alert('スケールとキーのチェックを最低1つずつは入れてください。');
     return;
   }
   if (
     (!settings.positionsNonPenta.length && !settings.positionsPenta.length) ||
-    (!settings.phrasesNonPenta.length && !settings.phrasesPenta.length)
+    (!settings.phrasesNonPenta.length && !settings.phrasesPenta.length) ||
+    (!settings.lenpu.length)
   ) {
     alert('スタートポジションやフレーズがすべて未選択です。');
     return;
@@ -106,6 +112,9 @@ function generateTask() {
     selectedPhrase = getRandomItem(settings.phrasesNonPenta);
   }
 
+  // 4) 連符
+  const selectedLenpu = getRandomItem(settings.lenpu);
+
   // BPM
   const randomBPM = getRandomBPM(settings.bpmRange.min, settings.bpmRange.max);
 
@@ -114,6 +123,7 @@ function generateTask() {
   document.getElementById('key-display').textContent = `キー: ${selectedKey}`;
   document.getElementById('position-display').textContent = `スタートポジション: ${selectedPosition}`;
   document.getElementById('phrase-display').textContent = `フレーズ: ${selectedPhrase}`;
+  document.getElementById('lenpu-display').textContent = `連符: ${selectedLenpu}`;
   document.getElementById('bpm-display').textContent = `BPM: ${randomBPM}`;
 
   // メトロノームに反映 & 自動スタート
