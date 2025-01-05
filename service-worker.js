@@ -19,17 +19,17 @@ self.addEventListener('install', (event) => {
 
 // 古いキャッシュの削除
 self.addEventListener('activate', (event) => {
-    event.waitUntil(
-        caches.keys().then((cacheNames) => {
-            return Promise.all(
-                cacheNames.map((cacheName) => {
-                    if (cacheName !== CACHE_NAME) {
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cache) => {
+          if (cache !== 'scale-app-cache') {
+            return caches.delete(cache);
+          }
         })
-    );
+      );
+    })
+  );
 });
 
 // フェッチ時にキャッシュから取得（オフライン対応）
