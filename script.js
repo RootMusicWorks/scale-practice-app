@@ -1,8 +1,10 @@
-// メトロノーム用のオーディオコンテキストを使用
+// 高精度メトロノーム用コード (バッファリングと先読みを実装)
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 let nextTickTime = 0;
 let currentBPM = 90;
 let metronomeRunning = false;
+const scheduleAheadTime = 0.1;  // 100ms先読みバッファ
+const lookahead = 25;           // 25msごとにチェック
 
 // 音源ファイルの読み込み
 let clickBuffer;
@@ -11,7 +13,7 @@ fetch('click.mp3')
     .then(buffer => audioContext.decodeAudioData(buffer))
     .then(decodedData => clickBuffer = decodedData);
 
-// 正確にクリック音を再生する関数
+// 音源の再生
 function playClickSound(time) {
     if (!clickBuffer) return;
     const clickSource = audioContext.createBufferSource();
@@ -20,23 +22,28 @@ function playClickSound(time) {
     clickSource.start(time);
 }
 
-// メトロノームの開始
-function startMetronome() {
-    if (!metronomeRunning) {
-        metronomeRunning = true;
-        nextTickTime = audioContext.currentTime;
-        scheduleTicks();
+// スケジューリング
+function scheduleTick(time) {
+    playClickSound(time);
+    nextTickTime += 60.0 / currentBPM;
+}
+
+// 先読みとバッファリング
+function scheduler() {
+    while (nextTickTime < audioContext.currentTime + scheduleAheadTime) {
+        scheduleTick(nextTickTime);
+    }
+    if (metronomeRunning) {
+        setTimeout(scheduler, lookahead);
     }
 }
 
-// スケジューラー: 正確なタイミングでクリック音を鳴らす
-function scheduleTicks() {
-    while (nextTickTime < audioContext.currentTime + 0.1) {
-        playClickSound(nextTickTime);
-        nextTickTime += 60.0 / currentBPM;
-    }
-    if (metronomeRunning) {
-        setTimeout(scheduleTicks, 25); // 25msごとにチェック
+// メトロノームの開始
+function startMetronome() {
+    if (!metronomeRunning) {
+        nextTickTime = audioContext.currentTime;
+        metronomeRunning = true;
+        scheduler();
     }
 }
 
@@ -51,11 +58,10 @@ function updateBPM(value) {
     document.getElementById('bpm-input').value = currentBPM;
     if (metronomeRunning) {
         nextTickTime = audioContext.currentTime;
-        scheduleTicks();
     }
 }
 
-// イベントリスナーの追加
+// イベントリスナー設定
 addEventListenersWithTouchSupport('start-metronome', startMetronome);
 addEventListenersWithTouchSupport('stop-metronome', stopMetronome);
 addEventListenersWithTouchSupport('increase-bpm', () => updateBPM(currentBPM + 1));
