@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>スケール練習アプリ</title>
   <link rel="stylesheet" href="style.css"/>
-  <link rel="manifest" href="manifest.json"/>
 </head>
 <body>
   <div class="container">
@@ -14,12 +13,14 @@
     <!-- お題表示 -->
     <div id="task">
       <h2>お題</h2>
+      <!-- 表示順: スケール → キー → スタートポジション → フレーズ → 連符 → BPM -->
       <p id="scale-display">スケール: -</p>
       <p id="key-display">キー: -</p>
       <p id="position-display">スタートポジション: -</p>
       <p id="phrase-display">フレーズ: -</p>
       <p id="lenpu-display">連符: -</p>
       <p id="bpm-display">BPM: -</p>
+
       <div class="task-buttons">
         <button id="generate-task">お題を生成</button>
         <button id="stop-task-metronome">停止</button>
@@ -63,7 +64,7 @@
         </div>
       </div>
 
-      <!-- キー（横並びのまま） -->
+      <!-- キー（横並び） -->
       <div>
         <h3>キー</h3>
         <div class="sub-options-horizontal" id="keys-suboptions">
@@ -176,19 +177,6 @@
       </div>
     </div>
   </div>
-  <!-- スクリプト -->
   <script src="script.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker
-        .register('/service-worker.js')
-        .then(function(registration) {
-          console.log('Service Worker registered with scope:', registration.scope);
-        })
-        .catch(function(error) {
-          console.log('Service Worker registration failed:', error);
-        });
-    }
-  </script>
 </body>
 </html>
