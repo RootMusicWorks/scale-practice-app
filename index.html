@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>スケール練習アプリ</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="manifest" href="manifest.json"/>
+</head>
+<body>
+  <div class="container">
+    <h1>スケール練習アプリ</h1>
+
+    <!-- お題表示 -->
+    <div id="task">
+      <h2>お題</h2>
+      <p id="scale-display">スケール: -</p>
+      <p id="key-display">キー: -</p>
+      <p id="position-display">スタートポジション: -</p>
+      <p id="phrase-display">フレーズ: -</p>
+      <p id="bpm-display">BPM: -</p>
+      <div class="task-buttons">
+        <button id="generate-task">お題を生成</button>
+        <button id="stop-task-metronome">停止</button>
+        <button id="resume-task-metronome">再開</button>
+      </div>
+    </div>
+
+    <!-- 設定欄 -->
+    <div id="settings">
+      <h2>設定</h2>
+
+      <!-- スケール -->
+      <div>
+        <h3>スケール</h3>
+        <div class="two-column">
+          <!-- ペンタ以外 (左列) -->
+          <div class="column">
+            <h4>ペンタ以外</h4>
+            <div class="sub-options" id="scales-nonpenta">
+              <label><input type="checkbox" value="メジャー" checked> メジャー</label>
+              <label><input type="checkbox" value="マイナー" checked> マイナー</label>
+              <label><input type="checkbox" value="リディアン" checked> リディアン</label>
+              <label><input type="checkbox" value="ドリアン" checked> ドリアン</label>
+              <label><input type="checkbox" value="ミクソリディアン" checked> ミクソリディアン</label>
+              <label><input type="checkbox" value="メロディックマイナー" checked> メロディックマイナー</label>
+              <label><input type="checkbox" value="リディアンフラットセブン" checked> リディアンフラットセブン</label>
+              <label><input type="checkbox" value="オルタード" checked> オルタード</label>
+              <label><input type="checkbox" value="ロクリアンナチュラルナイン" checked> ロクリアンナチュラルナイン</label>
+            </div>
+          </div>
+          <!-- ペンタ (右列) -->
+          <div class="column">
+            <h4>ペンタ</h4>
+            <div class="sub-options" id="scales-penta">
+              <label><input type="checkbox" value="メジャーペンタ" checked> メジャーペンタ</label>
+              <label><input type="checkbox" value="マイナーペンタ" checked> マイナーペンタ</label>
+              <label><input type="checkbox" value="雲井ペンタ" checked> 雲井ペンタ</label>
+              <label><input type="checkbox" value="m7b5ペンタ" checked> m7b5ペンタ</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- キー（横並びのまま） -->
+      <div>
+        <h3>キー</h3>
+        <div class="sub-options-horizontal" id="keys-suboptions">
+          <label><input type="checkbox" value="Cb" checked> Cb</label>
+          <label><input type="checkbox" value="C" checked> C</label>
+          <label><input type="checkbox" value="C#" checked> C#</label>
+          <label><input type="checkbox" value="D" checked> D</label>
+          <label><input type="checkbox" value="D#" checked> D#</label>
+          <label><input type="checkbox" value="E" checked> E</label>
+          <label><input type="checkbox" value="F" checked> F</label>
+          <label><input type="checkbox" value="F#" checked> F#</label>
+          <label><input type="checkbox" value="G" checked> G</label>
+          <label><input type="checkbox" value="G#" checked> G#</label>
+          <label><input type="checkbox" value="A" checked> A</label>
+          <label><input type="checkbox" value="A#" checked> A#</label>
+          <label><input type="checkbox" value="B" checked> B</label>
+        </div>
+      </div>
+
+      <!-- スタートポジション -->
+      <div>
+        <h3>スタートポジション</h3>
+        <div class="two-column">
+          <!-- ペンタ以外 (左列) -->
+          <div class="column">
+            <h4>ペンタ以外</h4>
+            <div class="sub-options" id="positions-nonpenta">
+              <label><input type="checkbox" value="6弦 人差し指" checked> 6弦 人差し指</label>
+              <label><input type="checkbox" value="6弦 中指（薬指）" checked> 6弦 中指（薬指）</label>
+              <label><input type="checkbox" value="6弦 小指" checked> 6弦 小指</label>
+              <label><input type="checkbox" value="5弦 人差し指" checked> 5弦 人差し指</label>
+              <label><input type="checkbox" value="5弦 中指（薬指）" checked> 5弦 中指（薬指）</label>
+              <label><input type="checkbox" value="5弦 小指" checked> 5弦 小指</label>
+              <label><input type="checkbox" value="4弦 人差し指" checked> 4弦 人差し指</label>
+            </div>
+          </div>
+          <!-- ペンタ (右列) -->
+          <div class="column">
+            <h4>ペンタ</h4>
+            <div class="sub-options" id="positions-penta">
+              <label><input type="checkbox" value="6弦 人差し指" checked> 6弦 人差し指</label>
+              <label><input type="checkbox" value="6弦 小指" checked> 6弦 小指</label>
+              <label><input type="checkbox" value="5弦 人差し指" checked> 5弦 人差し指</label>
+              <label><input type="checkbox" value="5弦 小指" checked> 5弦 小指</label>
+              <label><input type="checkbox" value="4弦 人差し指" checked> 4弦 人差し指</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- フレーズ -->
+      <div>
+        <h3>フレーズ</h3>
+        <div class="two-column">
+          <!-- ペンタ以外 (左列) -->
+          <div class="column">
+            <h4>ペンタ以外</h4>
+            <div class="sub-options" id="phrases-nonpenta">
+              <label><input type="checkbox" value="2度インターバル" checked> 2度インターバル</label>
+              <label><input type="checkbox" value="3度インターバル" checked> 3度インターバル</label>
+              <label><input type="checkbox" value="4度インターバル" checked> 4度インターバル</label>
+              <label><input type="checkbox" value="4度インターバル（インバージョン）" checked> 4度インターバル（インバージョン）</label>
+              <label><input type="checkbox" value="5度インターバル" checked> 5度インターバル</label>
+              <label><input type="checkbox" value="5度インターバル（インバージョン）" checked> 5度インターバル（インバージョン）</label>
+            </div>
+          </div>
+          <!-- ペンタ (右列) -->
+          <div class="column">
+            <h4>ペンタ</h4>
+            <div class="sub-options" id="phrases-penta">
+              <label><input type="checkbox" value="フレーズ1" checked> フレーズ1</label>
+              <label><input type="checkbox" value="フレーズ2" checked> フレーズ2</label>
+              <label><input type="checkbox" value="フレーズ3" checked> フレーズ3</label>
+              <label><input type="checkbox" value="フレーズ4" checked> フレーズ4</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BPM範囲設定 (初期値 90 ～ 120) -->
+      <div>
+        <h3>BPM範囲</h3>
+        <label>最小BPM: <input type="number" id="bpm-min" value="90" min="40" max="240"></label>
+        <label>最大BPM: <input type="number" id="bpm-max" value="120" min="40" max="240"></label>
+      </div>
+    </div>
+
+    <!-- メトロノーム -->
+    <div id="metronome">
+      <h2>メトロノーム</h2>
+      <button id="start-metronome">開始</button>
+      <button id="stop-metronome">停止</button>
+      <br />
+      <div>
+        <button id="decrease-bpm">-1</button>
+        <button id="increase-bpm">+1</button>
+        <button id="decrease5-bpm">-5</button>
+        <button id="increase5-bpm">+5</button>
+        <span>BPM: <input type="number" id="bpm-input" value="90" min="40" max="240"></span>
+      </div>
+    </div>
+  </div>
+  <!-- スクリプト -->
+  <script src="script.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/service-worker.js')
+        .then(function(registration) {
+          console.log('Service Worker registered with scope:', registration.scope);
+        })
+        .catch(function(error) {
+          console.log('Service Worker registration failed:', error);
+        });
+    }
+  </script>
+</body>
+</html>
