@@ -13,6 +13,7 @@ const settings = {
 // メトロノーム関連
 let metronomeInterval;
 let currentBPM = 90;
+let nextTickTime = 0;
 
 // MP3 音源を読み込む
 const clickAudio = new Audio('click.mp3');
@@ -138,25 +139,34 @@ function playClickSound() {
   // 音源を先頭に戻し、再生
   clickAudio.currentTime = 0;
   clickAudio.play().catch(e => {
-    console.log("Audio play error:", e);
+    console.log("Audio play error:", e);  // 音が再生できない場合のエラーハンドリング
   });
 }
 
 function startMetronome() {
-  stopMetronome();
-  metronomeInterval = setInterval(playClickSound, 60000 / currentBPM);
+  nextTickTime = performance.now();  // 最初のtick時間を設定
+  requestAnimationFrame(tick);  // メトロノームを開始
+}
+
+function tick(currentTime) {
+  if (currentTime >= nextTickTime) {
+    playClickSound();
+    nextTickTime = currentTime + (60000 / currentBPM);  // 次のクリック音の時間を計算
+  }
+  requestAnimationFrame(tick);  // 継続的にtickを呼び出す
 }
 
 function stopMetronome() {
-  clearInterval(metronomeInterval);
+  cancelAnimationFrame(nextTickTime);  // メトロノームを停止
 }
 
 function updateBPM(value) {
   currentBPM = Math.max(40, Math.min(240, currentBPM + value));
   document.getElementById('bpm-input').value = currentBPM;
   // メトロノームが動いていれば BPM 変更を即反映
-  if (metronomeInterval) {
-    startMetronome();
+  if (nextTickTime) {
+    nextTickTime = performance.now();
+    requestAnimationFrame(tick);
   }
 }
 
@@ -180,7 +190,8 @@ document.getElementById('increase5-bpm').addEventListener('click', () => updateB
 document.getElementById('bpm-input').addEventListener('change', (event) => {
   const newValue = Number(event.target.value);
   currentBPM = Math.max(40, Math.min(240, newValue));
-  if (metronomeInterval) {
-    startMetronome();
+  if (nextTickTime) {
+    nextTickTime = performance.now();
+    requestAnimationFrame(tick);
   }
 });
