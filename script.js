@@ -131,22 +131,33 @@ function generateTask() {
 }
 
 /* ====================================
-  イベントリスナー
+  イベントリスナー（スマホ対応済み）
 ==================================== */
-document.getElementById('generate-task').addEventListener('click', generateTask);
-document.getElementById('stop-task-metronome').addEventListener('click', stopMetronome);
-document.getElementById('resume-task-metronome').addEventListener('click', startMetronome);
 
-document.getElementById('start-metronome').addEventListener('click', startMetronome);
-document.getElementById('stop-metronome').addEventListener('click', stopMetronome);
+// クリックとタップの両方に対応
+function addEventListenersWithTouchSupport(elementId, callback) {
+    const element = document.getElementById(elementId);
+    element.addEventListener('click', callback);
+    element.addEventListener('touchstart', (e) => {
+        e.preventDefault(); // 二重実行防止
+        callback();
+    });
+}
 
-// BPM増減
-document.getElementById('decrease-bpm').addEventListener('click', () => updateBPM(-1));
-document.getElementById('increase-bpm').addEventListener('click', () => updateBPM(1));
-document.getElementById('decrease5-bpm').addEventListener('click', () => updateBPM(-5));
-document.getElementById('increase5-bpm').addEventListener('click', () => updateBPM(5));
+// タスク生成とメトロノームの制御
+addEventListenersWithTouchSupport('generate-task', generateTask);
+addEventListenersWithTouchSupport('stop-task-metronome', stopMetronome);
+addEventListenersWithTouchSupport('resume-task-metronome', startMetronome);
+addEventListenersWithTouchSupport('start-metronome', startMetronome);
+addEventListenersWithTouchSupport('stop-metronome', stopMetronome);
 
-// BPM 手入力
+// BPM増減ボタン
+addEventListenersWithTouchSupport('decrease-bpm', () => updateBPM(-1));
+addEventListenersWithTouchSupport('increase-bpm', () => updateBPM(1));
+addEventListenersWithTouchSupport('decrease5-bpm', () => updateBPM(-5));
+addEventListenersWithTouchSupport('increase5-bpm', () => updateBPM(5));
+
+// BPM入力変更
 document.getElementById('bpm-input').addEventListener('change', (event) => {
     const newValue = Number(event.target.value);
     currentBPM = Math.max(40, Math.min(240, newValue));
