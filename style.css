@@ -27,7 +27,7 @@ h1, h2 {
   margin-top: 10px;
 }
 
-/* 2カラム (スケール,スタートポジション,フレーズ のペンタ/ペンタ以外) */
+/* 2カラム (スケール、ポジション、フレーズなど) */
 .two-column {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -35,7 +35,7 @@ h1, h2 {
 }
 @media (max-width: 600px) {
   .two-column {
-    grid-template-columns: 1fr; 
+    grid-template-columns: 1fr;
   }
 }
 
@@ -43,23 +43,32 @@ h1, h2 {
   margin-bottom: 5px;
 }
 
-/* 縦並び */
+/* ラベルを縦並びにする指定 (ペンタなど) */
 .sub-options label {
   display: block;
   margin-bottom: 5px;
 }
 
-/* キーだけは横並び */
+/* キーの横並び (PCは1行、スマホは折り返し) */
 .sub-options-horizontal {
-  white-space: nowrap;
+  display: flex;        /* Flexにする */
+  flex-wrap: nowrap;    /* PCでは1行でなるべく詰める */
+  gap: 10px;            /* ラベル同士の余白 */
 }
+
+/* 画面が狭いときは折り返す */
+@media (max-width: 600px) {
+  .sub-options-horizontal {
+    flex-wrap: wrap;   /* スマホでは複数行に折り返し */
+  }
+}
+
 .sub-options-horizontal label {
   display: inline-block;
-  margin-right: 10px;
   margin-bottom: 5px;
 }
 
-/* ボタン */
+/* 汎用ボタン */
 button {
   padding: 10px 20px;
   cursor: pointer;
